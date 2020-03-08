@@ -19,6 +19,7 @@ class UserRepositoryTest {
   @Test
   void createUser_throwsUserAlreadyExists() {
     User user = new User("ajasja", null, "zzz", "111");
+    user.setHashedPassword("aaa");
 
     repository.createUser(user);
 
@@ -28,6 +29,7 @@ class UserRepositoryTest {
   @Test
   void createUser_returnsSavedUser() {
     User user = new User("ajasja", null, "zzz", "111");
+    user.setHashedPassword("aaa");
 
     assertNull(user.getId());
 
