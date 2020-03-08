@@ -3,7 +3,6 @@ package com.staxter.userservice.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.staxter.userservice.service.util.TextHasher;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 /**
@@ -41,17 +41,8 @@ public class User implements Serializable {
 
   @JsonIgnore
   @Column(nullable = false)
+  @Accessors(chain = true)
   private String hashedPassword;
-
-  /**
-   * Sets plain text password.
-   *
-   * @param plainTextPassword the plain text password
-   */
-  public void setPlainTextPassword(String plainTextPassword) {
-    this.plainTextPassword = plainTextPassword;
-    hashedPassword = TextHasher.hashText(plainTextPassword);
-  }
 
   /**
    * Instantiates a new User.
@@ -66,7 +57,6 @@ public class User implements Serializable {
     this.lastName = lastName;
     this.userName = userName;
     this.plainTextPassword = plainTextPassword;
-    this.hashedPassword = TextHasher.hashText(plainTextPassword);
   }
 
 }
