@@ -3,12 +3,13 @@ package com.staxter.userservice.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.staxter.userservice.config.security.WebSecurityConfig;
 import com.staxter.userservice.model.User;
 import com.staxter.userservice.service.UserService;
 import lombok.SneakyThrows;
@@ -25,7 +26,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 @WebMvcTest
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = {UserController.class})
+@ContextConfiguration(classes = {UserController.class, WebSecurityConfig.class})
 class UserControllerTest {
 
   private static final String VALID_USER_JSON = "{\"firstName\":\"asasa\",\"userName\":\"asasa\",\"plainTextPassword\":\"a\"}";
@@ -51,8 +52,6 @@ class UserControllerTest {
   private ResultActions registerUser(String user) {
     return mvc.perform(
         post("/userservice/register")
-            .with(csrf())
-            .with(user("a"))
             .content(user)
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON_UTF8))
@@ -149,6 +148,26 @@ class UserControllerTest {
     String userNoPassword = "{\"firstName\":\"asasa\",\"userName\":\"asasa\"}";
     registerUser(userNoPassword)
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @SneakyThrows
+  void getPrincipal_returns401() {
+    mvc.perform(
+        get("/userservice/me"))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @SneakyThrows
+  void getPrincipal_returns4012() {
+
+    mvc.perform(
+        get("/userservice/me")
+            .with(user("aa")))
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(status().isOk());
   }
 
 }
