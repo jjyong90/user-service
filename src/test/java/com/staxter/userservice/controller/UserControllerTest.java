@@ -42,18 +42,18 @@ class UserControllerTest {
   void registerUser_callsService() {
     when(service.createUser(any())).thenAnswer(x -> x.getArgument(0));
 
-    registerUser();
+    registerUser(VALID_USER_JSON);
 
     verify(service).createUser(any(User.class));
   }
 
   @SneakyThrows
-  private ResultActions registerUser() {
+  private ResultActions registerUser(String user) {
     return mvc.perform(
         post("/userservice/register")
             .with(csrf())
             .with(user("a"))
-            .content(VALID_USER_JSON)
+            .content(user)
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON_UTF8))
         .andDo(MockMvcResultHandlers.print());
@@ -64,7 +64,7 @@ class UserControllerTest {
   void registerUser_returnsCreated_whenUserIsValid() {
     when(service.createUser(any())).thenAnswer(x -> x.getArgument(0));
 
-    registerUser()
+    registerUser(VALID_USER_JSON)
         .andExpect(status().isCreated());
   }
 
@@ -74,7 +74,7 @@ class UserControllerTest {
     mockCreateUser();
     USER.setId("asasasa");
 
-    registerUser()
+    registerUser(VALID_USER_JSON)
         .andExpect(jsonPath("$.id").value(USER.getId()));
   }
 
@@ -87,7 +87,7 @@ class UserControllerTest {
   void registerUser_returnsFirstName() {
     mockCreateUser();
 
-    registerUser()
+    registerUser(VALID_USER_JSON)
         .andExpect(jsonPath("$.firstName").value(USER.getFirstName()));
   }
 
@@ -96,7 +96,7 @@ class UserControllerTest {
   void registerUser_returnsLastName() {
     mockCreateUser();
 
-    registerUser()
+    registerUser(VALID_USER_JSON)
         .andExpect(jsonPath("$.lastName").value(USER.getLastName()));
   }
 
@@ -105,7 +105,7 @@ class UserControllerTest {
   void registerUser_returnsUserName() {
     mockCreateUser();
 
-    registerUser()
+    registerUser(VALID_USER_JSON)
         .andExpect(jsonPath("$.userName").value(USER.getUserName()));
   }
 
@@ -114,7 +114,7 @@ class UserControllerTest {
   void registerUser_dontReturnPlainPassword() {
     mockCreateUser();
 
-    registerUser()
+    registerUser(VALID_USER_JSON)
         .andExpect(jsonPath("$.plainTextPassword").doesNotExist());
   }
 
@@ -123,8 +123,32 @@ class UserControllerTest {
   void registerUser_dontReturnHashedPassword() {
     mockCreateUser();
 
-    registerUser()
+    registerUser(VALID_USER_JSON)
         .andExpect(jsonPath("$.hashedPassword").doesNotExist());
+  }
+
+  @Test
+  @SneakyThrows
+  void registerUser_returnsBadRequest_whenEmptyFirstName() {
+    String userNoFirstName = "{\"userName\":\"asasa\",\"plainTextPassword\":\"a\"}";
+    registerUser(userNoFirstName)
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @SneakyThrows
+  void registerUser_returnsBadRequest_whenEmptyUserName() {
+    String userNoUserName = "{\"firstName\":\"asasa\",\"plainTextPassword\":\"a\"}";
+    registerUser(userNoUserName)
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @SneakyThrows
+  void registerUser_returnsBadRequest_whenEmptyPassword() {
+    String userNoPassword = "{\"firstName\":\"asasa\",\"userName\":\"asasa\"}";
+    registerUser(userNoPassword)
+        .andExpect(status().isBadRequest());
   }
 
 }
